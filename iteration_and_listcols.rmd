@@ -1,0 +1,99 @@
+---
+title: "iteration_and_listcols"
+author: "Austin Hsin"
+date: "2023-10-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+## Lists
+
+```{r}
+vec_numeric = 5:8
+vec_char = c("My", "name", "is", "Jeff")
+vec_logical = c(TRUE, TRUE, TRUE, FALSE)
+
+l = list(
+  vec_numeric = 5:8,
+  mat         = matrix(1:8, 2, 4),
+  vec_logical = c(TRUE, FALSE),
+  summary     = summary(rnorm(1000)))
+l
+```
+
+## for loops
+
+```{r}
+#example list
+list_norms = 
+  list(
+    a = rnorm(20, 3, 1),
+    b = rnorm(20, 0, 5),
+    c = rnorm(20, 10, .2),
+    d = rnorm(20, -3, 1)
+  )
+
+is.list(list_norms)
+
+#mean function from writing_functions.rmd
+mean_and_sd = function(x) {
+  if (!is.numeric(x)) {
+    stop("Argument x should be numeric")
+  } else if (length(x) == 1) {
+    stop("Cannot be computed for length 1 vectors")
+  }
+  mean_x = mean(x)
+  sd_x = sd(x)
+  tibble(
+    mean = mean_x, 
+    sd = sd_x
+  )
+}
+
+mean_and_sd(list_norms[[1]])
+mean_and_sd(list_norms[[2]])
+
+#for Loop
+output = vector("list", length = 4)
+for (i in 1:4) {
+  output[[i]] = mean_and_sd(list_norms[[i]])
+}
+```
+
+## Map
+
+```{r}
+#Comparing map to loop
+output = map(list_norms, mean_and_sd)
+
+output = vector("list", length = 4)
+for (i in 1:4) {
+  output[[i]] = median(list_norms[[i]])
+}
+output = map(list_norms, median)
+```
+
+## Listcol
+
+```{r}
+#Sample list
+listcol_df = 
+  tibble(
+    name = c("a", "b", "c", "d"),
+    samp = list_norms
+  )
+
+mean_and_sd(listcol_df$samp[[1]])
+
+#Map returns a list column
+map(listcol_df$samp, mean_and_sd)
+
+#Saving list column as a df
+listcol_df = 
+  listcol_df |> 
+  mutate(summary = map(samp, mean_and_sd))
+```
